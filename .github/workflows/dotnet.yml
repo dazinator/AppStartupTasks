@@ -122,6 +122,6 @@ jobs:
     # - name: Pack
     #   run: dotnet pack src -c Release --no-build --no-restore -p:PackageVersion=${{ env.GitVersion_SemVer }} --verbosity normal
 
-    # - name: Publish
-    #   if: startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/develop')
-    #   run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+      - name: Push nuget.org
+        if: startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/develop')
+        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}} # configure secret in Repo settings -> Secrets and Variables -> New Repository Secret

@@ -123,12 +123,12 @@ jobs:
         run: dotnet pack src --no-build --no-restore --configuration Release -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg /p:PackageVersion=$SEMVER
 
       - name: Push nuget to GitHub
-        if: "!env.IsLongLivingBranch" # The exclamation mark (!) in YAML is a special character used for tags, so when you use it in expressions, it should be quoted to avoid syntax errors. 
+        if: ${{ !env.ISLONGLIVINGBRANCH }} # The exclamation mark (!) in YAML is a special character used for tags, so when you use it in expressions, it should be quoted to avoid syntax errors. 
         run: dotnet nuget push "src/**/*.nupkg" -s github
       
       # configure NUGET_API_KEY secret in Repo settings -> Secrets and Variables -> New Repository Secret
       - name: Push nuget to NuGet.org
-        if: env.IsLongLivingBranch
+        if: ${{ env.ISLONGLIVINGBRANCH }}
         run: |
           for file in src/**/*.nupkg; do
             nuget push "$file" -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{ secrets.NUGET_API_KEY }} 

@@ -110,7 +110,7 @@ jobs:
 
       - name: Build for other branches
         if: env.ISLONGLIVINGBRANCH != 'true'
-        run: dotnet build src --no-restore --configuration Release /p:Version=$SEMVER     
+        run: dotnet build src --no-restore --configuration Release /p:Version=$SEMVER /p:DebugType=embedded  # embedding is necessary when publishing to github nuget as it doesn't support symbols packages.
 
       - name: Test
         run: dotnet test src -c Release --no-build --no-restore --verbosity normal

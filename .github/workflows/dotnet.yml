@@ -116,12 +116,17 @@ jobs:
       - name: Pack nuget
         run: dotnet pack src --no-build --no-restore --configuration Release -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg /p:PackageVersion=$SEMVER
 
-      - name: Push nuget
+      - name: Push nuget to GitHub
+        if: !startsWith(github.ref, 'refs/heads/master') && !startsWith(github.ref, 'refs/heads/develop')
         run: dotnet nuget push "src/**/*.nupkg" -s github
+
+      - name: Push nuget to NuGet.org
+        if: startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/develop')
+        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}     # configure secret in Repo settings -> Secrets and Variables -> New Repository Secret
 
     # - name: Pack
     #   run: dotnet pack src -c Release --no-build --no-restore -p:PackageVersion=${{ env.GitVersion_SemVer }} --verbosity normal
 
-      - name: Push nuget.org
-        if: startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/develop')
-        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}} # configure secret in Repo settings -> Secrets and Variables -> New Repository Secret
+#      - name: Push nuget.org
+#        if: startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/develop')
+#        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}} 

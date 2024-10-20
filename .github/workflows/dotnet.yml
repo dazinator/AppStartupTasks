@@ -116,9 +116,9 @@ jobs:
       - name: Pack nuget
         run: dotnet pack src --no-build --no-restore --configuration Release -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg /p:PackageVersion=$SEMVER
 
-      - name: Push nuget to GitHub
-        if: !contains(github.ref, 'refs/heads/master') || !contains(github.ref, 'refs/heads/develop')     
-        run: dotnet nuget push "src/**/*.nupkg" -s github
+#      - name: Push nuget to GitHub
+#        if: !contains(github.ref, 'refs/heads/master') || !contains(github.ref, 'refs/heads/develop')     
+#        run: dotnet nuget push "src/**/*.nupkg" -s github
 
       - name: Push nuget to NuGet.org
         if: contains(github.ref, 'refs/heads/master') || contains(github.ref, 'refs/heads/develop')

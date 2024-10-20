@@ -84,6 +84,7 @@ jobs:
     needs: [ calculate-variables ] # see https://github.com/GitTools/actions/blob/main/docs/examples/github/gitversion/execute/usage-examples.md#example-7
     env:
       SEMVER: ${{ needs.calculate-variables.outputs.semVer }}
+      ISLONGLIVINGBRANCH: ${{ contains(github.ref, 'refs/heads/master') || contains(github.ref, 'refs/heads/develop') }}
 
     steps:
       - name: Checkout
@@ -103,8 +104,13 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore src
 
-      - name: Build
-        run: dotnet build src --no-restore --configuration Release /p:Version=$SEMVER
+      - name: Build for long-living branches
+        if: env.ISLONGLIVINGBRANCH == 'true'
+        run: dotnet build src --no-restore --configuration Release /p:Version=$SEMVER /p:DebugType=portable /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg
+
+      - name: Build for other branches
+        if: env.ISLONGLIVINGBRANCH != 'true'
+        run: dotnet build src --no-restore --configuration Release /p:Version=$SEMVER     
 
       - name: Test
         run: dotnet test src -c Release --no-build --no-restore --verbosity normal
@@ -117,12 +123,12 @@ jobs:
         run: dotnet pack src --no-build --no-restore --configuration Release -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg /p:PackageVersion=$SEMVER
 
       - name: Push nuget to GitHub
-        if: "!contains(github.ref, 'refs/heads/master') || !contains(github.ref, 'refs/heads/develop')" # The exclamation mark (!) in YAML is a special character used for tags, so when you use it in expressions, it should be quoted to avoid syntax errors. 
+        if: "!env.IsLongLivingBranch" # The exclamation mark (!) in YAML is a special character used for tags, so when you use it in expressions, it should be quoted to avoid syntax errors. 
         run: dotnet nuget push "src/**/*.nupkg" -s github
       
       # configure NUGET_API_KEY secret in Repo settings -> Secrets and Variables -> New Repository Secret
       - name: Push nuget to NuGet.org
-        if: contains(github.ref, 'refs/heads/master') || contains(github.ref, 'refs/heads/develop')
+        if: env.IsLongLivingBranch
         run: |
           for file in src/**/*.nupkg; do
             nuget push "$file" -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{ secrets.NUGET_API_KEY }} 

@@ -117,11 +117,11 @@ jobs:
         run: dotnet pack src --no-build --no-restore --configuration Release -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg /p:PackageVersion=$SEMVER
 
       - name: Push nuget to GitHub
-        if: !startsWith(github.ref, 'refs/heads/master') && !startsWith(github.ref, 'refs/heads/develop')
+        if: !contains(github.ref, 'refs/heads/master') || !contains(github.ref, 'refs/heads/develop')     
         run: dotnet nuget push "src/**/*.nupkg" -s github
 
       - name: Push nuget to NuGet.org
-        if: startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/develop')
+        if: contains(github.ref, 'refs/heads/master') || contains(github.ref, 'refs/heads/develop')
         run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}     # configure secret in Repo settings -> Secrets and Variables -> New Repository Secret
 
     # - name: Pack

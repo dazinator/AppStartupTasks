@@ -2,7 +2,7 @@ namespace AppStartupTasks;
 
 using Microsoft.Extensions.DependencyInjection;
 
-public class AppStartupTaskExecutor<TServiceType> : IAppStartupTaskExecutor
+public class AppStartupTaskExecutor<TServiceType> : IAppStartupTaskExecutor<TServiceType>
     where TServiceType : IAppStartupTask
 {
     private readonly IServiceProvider _sp;

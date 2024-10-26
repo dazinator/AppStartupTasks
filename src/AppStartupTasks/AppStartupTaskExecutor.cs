@@ -2,7 +2,8 @@ namespace AppStartupTasks;
 
 using Microsoft.Extensions.DependencyInjection;
 
-public class AppStartupTaskExecutor : IAppStartupTaskExecutor
+public class AppStartupTaskExecutor<TServiceType> : IAppStartupTaskExecutor
+    where TServiceType : IAppStartupTask
 {
     private readonly IServiceProvider _sp;
 
@@ -10,7 +11,7 @@ public class AppStartupTaskExecutor : IAppStartupTaskExecutor
 
     public async Task ExecuteAsync(CancellationToken ct)
     {
-        var tasks = _sp.GetServices<IAppStartupTask>().ToArray();
+        var tasks = _sp.GetServices<TServiceType>().ToArray();
         if (!tasks?.Any() ?? false)
         {
             return;

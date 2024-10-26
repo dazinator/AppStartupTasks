@@ -7,6 +7,6 @@ public static class SqliteAppStartupTaskExtensions
     /// </summary>
     /// <param name="builder"></param>
     /// <returns></returns>
-    public static IRegisterAppStartupTaskBuilder EnsureSqliteInMemoryConnectionOpen(
-        this IRegisterAppStartupTaskBuilder builder) => builder.Add<SqliteInMemoryConnectionOpenTask>();
+    public static IRegisterAppStartupTaskBuilder<IAppStartupTask> EnsureSqliteInMemoryConnectionOpen(
+        this IRegisterAppStartupTaskBuilder<IAppStartupTask> builder) => builder.Add<SqliteInMemoryConnectionOpenTask>();
 }

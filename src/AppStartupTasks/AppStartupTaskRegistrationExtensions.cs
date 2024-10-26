@@ -8,43 +8,63 @@ using Extensions;
 
 public static class AppStartupTaskRegistrationExtensions
 {
+
     /// <summary>
-    ///     Builds the service provider, but before returning it, creates a new temporary scope and executes the callback
-    ///     within that new scope for you to do any one time setup.
+    ///     Register <see cref="IAppStartupTask"/>s to be executed after the container is initialised.
     /// </summary>
     /// <param name="services"></param>
     /// <param name="configure"></param>
     /// <returns></returns>
     public static IServiceCollection AddAppStartupTasks(this IServiceCollection services,
-        Action<IRegisterAppStartupTaskBuilder> configure)
+        Action<IRegisterAppStartupTaskBuilder<IAppStartupTask>> configure) =>
+        AddAppStartupTasks<IAppStartupTask>(services, configure);
+
+
+    /// <summary>
+    ///    Register <see cref="TServiceType"/>s to be executed after the container is initialised.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddAppStartupTasks<TServiceType>(this IServiceCollection services,
+        Action<IRegisterAppStartupTaskBuilder<TServiceType>> configure)
+    where TServiceType: IAppStartupTask
     {
-        services.TryAddSingleton<IAppStartupTaskExecutor, AppStartupTaskExecutor>();
-        var builder = new RegisterAppStartupTaskBuilder(services);
+        services.TryAddSingleton(typeof(IAppStartupTaskExecutor<TServiceType>), typeof(AppStartupTaskExecutor<TServiceType>)); //<TServiceType>, AppStartupTaskExecutor>();
+       // services.TryAddSingleton<IAppStartupTaskExecutor<TServiceType>, AppStartupTaskExecutor<TServiceType>>();
+        var builder = new RegisterAppStartupTaskBuilder<TServiceType>(services);
         configure?.Invoke(builder);
         return services;
     }
 
     /// <summary>
-    ///     Executes initialisation registered using <see cref="AddAppStartupTasks" /> in a new temporary DI scope.
+    ///  Executes all startup tasks registered as <see cref="IAppStartupTask"/> in a new temporary DI scope.
     /// </summary>
     /// <returns></returns>
-    public static async Task<IServiceProvider> StartupTasksAsync(
+    public static Task<IServiceProvider> StartupTasksAsync(
+        this IServiceProvider serviceProvider, CancellationToken cancellationToken) =>
+        StartupTasksAsync<IAppStartupTask>(serviceProvider, cancellationToken);
+
+    /// <summary>
+    ///  Executes all startup tasks registered as <see cref="TServiceType"/> in a new temporary DI scope.
+    /// </summary>
+    /// <returns></returns>
+    public static async Task<IServiceProvider> StartupTasksAsync<TServiceType>(
         this IServiceProvider serviceProvider, CancellationToken cancellationToken)
+        where TServiceType: IAppStartupTask
     {
         await serviceProvider.ExecuteInNewScope(async sp =>
         {
-            var executor = sp.GetRequiredService<IAppStartupTaskExecutor>();
+            var executor = sp.GetRequiredService<IAppStartupTaskExecutor<TServiceType>>();
             await executor.ExecuteAsync(cancellationToken);
         });
         return serviceProvider;
     }
 
-    public static async Task ExecuteInNewScope(this IServiceProvider serviceProvider,
+    private static async Task ExecuteInNewScope(this IServiceProvider serviceProvider,
         Func<IServiceProvider, Task> initialisationScopeTasks)
     {
-        await using (var scope = serviceProvider.CreateAsyncScope())
-        {
-            await initialisationScopeTasks(scope.ServiceProvider);
-        }
+        await using var scope = serviceProvider.CreateAsyncScope();
+        await initialisationScopeTasks(scope.ServiceProvider);
     }
 }

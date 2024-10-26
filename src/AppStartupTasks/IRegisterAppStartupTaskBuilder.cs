@@ -1,12 +1,11 @@
 namespace AppStartupTasks;
 
-public interface IRegisterAppStartupTaskBuilder
+public interface IRegisterAppStartupTaskBuilder<TStartupTaskServiceType>
+    where TStartupTaskServiceType : IAppStartupTask
 {
-    RegisterAppStartupTaskBuilder Add(Func<IServiceProvider, Task> initialisationScopeTasks);
+    IRegisterAppStartupTaskBuilder<TStartupTaskServiceType> Add<T>()
+        where T : class, TStartupTaskServiceType;
 
-    RegisterAppStartupTaskBuilder Add<T>()
-        where T : class, IAppStartupTask;
-
-    RegisterAppStartupTaskBuilder Add<T>(Func<IServiceProvider, T> factory)
-        where T : class, IAppStartupTask;
+    IRegisterAppStartupTaskBuilder<TStartupTaskServiceType> Add<T>(Func<IServiceProvider, T> factory)
+        where T : class, TStartupTaskServiceType;
 }

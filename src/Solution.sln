@@ -8,7 +8,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E34B614D-5D00-461A-BDF0-8955906A1245}"
 	ProjectSection(SolutionItems) = preProject
 		..\readme.md = ..\readme.md
-		..\template-setup.md = ..\template-setup.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppStartupTasks", "AppStartupTasks\AppStartupTasks.csproj", "{0DC61FC6-7C4F-4A91-99FE-2A85C75F0481}"

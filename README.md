@@ -39,7 +39,7 @@ the baseline requirement is just that you use DI, and no longer coupled to other
         services.AddAppStartupTasks(builder =>
         {
             // Add some async delegate
-            builder.Add(async (sp) =>
+            builder.AddAsyncTask(async (sp) =>
                 {
                     // var someDep = sp.GetRequiredService<ILogger<Program>>()>()
                     await Task.Delay(100);
@@ -61,4 +61,48 @@ the baseline requirement is just that you use DI, and no longer coupled to other
        // Now proceed to continue spinning up your application, or starting your web host or whaatever.
    }
 
+```
+
+If you want to have different types of tasks you can execute at different points, you can derive, register, and execute explicit interfaces.
+
+
+```csharp
+    public interface IStartupTask1 : IAppStartupTask
+    {
+    }
+
+    public interface IStartupTask2 : IAppStartupTask
+    {
+    }
+
+    public class StartupTask1 : IStartupTask1
+    {
+        public Task ExecuteAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    public class StartupTask2 : IStartupTask2
+    {
+        public Task ExecuteAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    [Fact]
+    public async Task Docs_Usage()
+    {
+        var services = new ServiceCollection();
+        
+        // Register the tasks using your own interface types.
+        services.AddScoped<IStartupTask1, StartupTask1>();
+        services.AddScoped<IStartupTask2, StartupTask2>();       
+
+        var sp = await services.BuildServiceProvider();
+        
+        await sp.StartupTasksAsync<IStartupTask1>(CancellationToken.None); // execute all tasks registered for IStartupTask1
+        await sp.StartupTasksAsync<IStartupTask2>(CancellationToken.None); // execute all tasks registered for IStartupTask2
+    }
 ```

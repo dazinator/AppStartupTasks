@@ -15,7 +15,7 @@ public class UsageTests
         services.AddAppStartupTasks(builder =>
         {
             // Add some async delegate
-            builder.Add(async sp =>
+            builder.AddAsyncTask(async sp =>
                 {
                     // var someDep = sp.GetRequiredService<ILogger<Program>>()>()
                     await Task.Delay(100);
@@ -53,6 +53,40 @@ public class UsageTests
         public Task InitialiseAsync(CancellationToken ct)
         {
             Console.WriteLine(_message);
+            return Task.CompletedTask;
+        }
+    }
+
+    [Fact]
+    public async Task CustomStartupTaskType()
+    {
+        var services = new ServiceCollection();
+
+        // 1. Register the various app start up tasks in order. They won't be executed yet.
+        // .. using the IRegisterAppStartupTaskBuilder builder - you can optionaly create extension methods for this to improve fluency.
+        services.AddAppStartupTasks<ISpecialTask>(builder =>
+        {
+            // Add some async delegate
+            builder
+                .Add<SpecialTask>();
+        });
+
+
+        // 2. At some point in your application, once the `IServiceProvider` is built, execute the tasks!
+        //    You can use the .StartupTasksAsync extennsion method on `IServiceProvider` to do this.
+        var sp = await services.BuildServiceProvider()
+            .StartupTasksAsync<ISpecialTask>(CancellationToken.None);
+    }
+
+    public interface ISpecialTask : IAppStartupTask
+    {
+    }
+
+    public class SpecialTask : ISpecialTask
+    {
+        public Task InitialiseAsync(CancellationToken ct)
+        {
+            Console.WriteLine("Special Task");
             return Task.CompletedTask;
         }
     }

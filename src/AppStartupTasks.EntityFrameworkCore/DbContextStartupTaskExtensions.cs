@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 public static class DbContextStartupTaskExtensions
 {
-    public static IRegisterAppStartupTaskBuilder EnsureDatabaseCreated<TDbContext>(
-        this IRegisterAppStartupTaskBuilder builder)
+    public static IRegisterAppStartupTaskBuilder<IAppStartupTask> EnsureDatabaseCreated<TDbContext>(
+        this IRegisterAppStartupTaskBuilder<IAppStartupTask> builder)
         where TDbContext : DbContext =>
         builder.Add<EnsureDbContextCreatedTask<TDbContext>>();
 }
